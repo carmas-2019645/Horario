@@ -1,50 +1,113 @@
-<script>
-    const horas = ["7:00–4:00", "8:00–5:00", "9:00–6:00", "10:00–7:00"];
-    const empleadosBase = ["Armas", "Castro", "Alex", "Brady"];
-    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    
-    const hoy = new Date();
-    const nombreDia = dias[hoy.getDay()];
 
-    // Obtener número de semana del año
-    function getWeekNumber(date) {
-        const start = new Date(date.getFullYear(), 0, 1);
-        const diff = (date - start) / (1000 * 60 * 60 * 24);
-        return Math.ceil((diff + start.getDay() + 1) / 7);
-    }
-
-    // Rotar arreglo según número de semana
-    function rotarArray(array, pasos) {
-        const copia = [...array];
-        for (let i = 0; i < pasos; i++) {
-            const primero = copia.shift();
-            copia.push(primero);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario Diario - Licores de Guatemala</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
         }
-        return copia;
-    }
+        h1 {
+            color: #2c3e50;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        th {
+            background-color: #e0e0e0;
+        }
+        #mensaje-libre {
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
 
-    const semana = getWeekNumber(hoy);
-    const empleadosHoy = rotarArray(empleadosBase, (semana - 1) % empleadosBase.length);
+    <img src="hola.png" alt="Logo Licores de Guatemala" style="max-height: 100px; margin-bottom: 20px;">
+    <h1>Horario Diario</h1>
+    <h2 id="diaActual"></h2>
+    <div id="mensaje-libre"></div>
 
-    const tabla = document.getElementById("horario");
+    <table>
+        <thead>
+            <tr>
+                <th>Hora</th>
+                <th>Empleado</th>
+            </tr>
+        </thead>
+        <tbody id="horario"></tbody>
+    </table>
 
-    if (nombreDia === "Sábado" || nombreDia === "Domingo") {
-        const fila = document.createElement("tr");
-        const celda = document.createElement("td");
-        celda.colSpan = 2;
-        celda.textContent = "💤 No hay horario asignado para hoy. Día libre.";
-        fila.appendChild(celda);
-        tabla.appendChild(fila);
-    } else {
-        for (let i = 0; i < horas.length; i++) {
+    <script>
+        const horas = ["7:00–4:00", "8:00–5:00", "9:00–6:00", "10:00–7:00"];
+        const empleadosBase = ["Armas", "Castro", "Alex", "Brady"];
+        const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+        const hoy = new Date();
+        const nombreDia = dias[hoy.getDay()];
+        const tabla = document.getElementById("horario");
+        const mensajeLibre = document.getElementById("mensaje-libre");
+
+        document.getElementById("diaActual").textContent = `Hoy es ${nombreDia} - ${hoy.toLocaleDateString()}`;
+
+        // Obtener número de semana del año
+        function getWeekNumber(date) {
+            const start = new Date(date.getFullYear(), 0, 1);
+            const diff = (date - start) / (1000 * 60 * 60 * 24);
+            return Math.ceil((diff + start.getDay() + 1) / 7);
+        }
+
+        // Rotar el arreglo de empleados
+        function rotarArray(array, pasos) {
+            const copia = [...array];
+            for (let i = 0; i < pasos; i++) {
+                const primero = copia.shift();
+                copia.push(primero);
+            }
+            return copia;
+        }
+
+        const semana = getWeekNumber(hoy);
+        const empleadosHoy = rotarArray(empleadosBase, (semana - 1) % empleadosBase.length);
+
+        // Mostrar horario o mensaje si es sábado o domingo
+        if (nombreDia === "Sábado" || nombreDia === "Domingo") {
             const fila = document.createElement("tr");
-            const celdaHora = document.createElement("td");
-            const celdaEmpleado = document.createElement("td");
-            celdaHora.textContent = horas[i];
-            celdaEmpleado.textContent = empleadosHoy[i];
-            fila.appendChild(celdaHora);
-            fila.appendChild(celdaEmpleado);
+            const celda = document.createElement("td");
+            celda.colSpan = 2;
+            celda.textContent = "💤 No hay horario asignado para hoy. Día libre.";
+            fila.appendChild(celda);
             tabla.appendChild(fila);
+            mensajeLibre.textContent = "";
+        } else {
+            for (let i = 0; i < horas.length; i++) {
+                const fila = document.createElement("tr");
+                const celdaHora = document.createElement("td");
+                const celdaEmpleado = document.createElement("td");
+                celdaHora.textContent = horas[i];
+                celdaEmpleado.textContent = empleadosHoy[i];
+                fila.appendChild(celdaHora);
+                fila.appendChild(celdaEmpleado);
+                tabla.appendChild(fila);
+            }
         }
-    }
-</script>
+    </script>
+
+</body>
+</html>
