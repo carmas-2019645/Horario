@@ -1,5 +1,4 @@
- 
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -36,6 +35,26 @@
         th {
             background-color: #e0e0e0;
         }
+        #mensaje-libre {
+            color: #c0392b;
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #historial {
+            margin-top: 40px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #historial ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        #historial li {
+            margin-bottom: 5px;
+        }
         @media (max-width: 600px) {
             table, th, td {
                 font-size: 14px;
@@ -46,16 +65,11 @@
 <body>
     <img src="hola.png" alt="Logo Licores de Guatemala" class="logo">
     <h1>Horario Diario</h1>
-
-    <p>
-        <label for="fecha">Selecciona una fecha:</label>
-        <input type="date" id="fecha">
-        <button onclick="mostrarHorarioManual()">Ver horario</button>
-    </p>
-
     <h2 id="diaSeleccionado"></h2>
 
-    <table>
+    <div id="mensaje-libre"></div>
+
+    <table id="tabla-horario">
         <thead>
             <tr>
                 <th>Hora</th>
@@ -64,6 +78,9 @@
         </thead>
         <tbody id="horario"></tbody>
     </table>
+
+    <h2>Historial de semanas anteriores</h2>
+    <div id="historial"></div>
 
     <script>
         const horas = ["7:00–4:00", "8:00–5:00", "9:00–6:00", "10:00–7:00"];
@@ -85,46 +102,75 @@
             return rotada;
         }
 
-        function mostrarHorarioParaFecha(fecha) {
+        function mostrarHorarioDeHoy() {
             const tabla = document.getElementById("horario");
+            const mensajeLibre = document.getElementById("mensaje-libre");
+            const tablaHorario = document.getElementById("tabla-horario");
             tabla.innerHTML = "";
+            mensajeLibre.innerHTML = "";
 
+            const fecha = new Date();
+            const diaNumero = fecha.getDay();
             const semana = getWeekNumber(fecha);
-            const diaTexto = dias[fecha.getDay()];
+            const diaTexto = dias[diaNumero];
 
             document.getElementById("diaSeleccionado").textContent =
                 `Horario para ${diaTexto} ${fecha.toLocaleDateString()}`;
 
-            const empleadosSemana = rotarLista(empleadosBase, (semana - 1) % empleadosBase.length);
+            if (diaNumero === 0 || diaNumero === 6) {
+                tablaHorario.style.display = "none";
+                mensajeLibre.innerHTML = "💤 No hay horario asignado para hoy. Día libre.";
+            } else {
+                tablaHorario.style.display = "table";
+                const empleadosSemana = rotarLista(empleadosBase, (semana - 1) % empleadosBase.length);
 
-            for (let i = 0; i < horas.length; i++) {
-                const fila = document.createElement("tr");
-                const celdaHora = document.createElement("td");
-                const celdaEmpleado = document.createElement("td");
-                celdaHora.textContent = horas[i];
-                celdaEmpleado.textContent = empleadosSemana[i];
-                fila.appendChild(celdaHora);
-                fila.appendChild(celdaEmpleado);
-                tabla.appendChild(fila);
+                for (let i = 0; i < horas.length; i++) {
+                    const fila = document.createElement("tr");
+                    const celdaHora = document.createElement("td");
+                    const celdaEmpleado = document.createElement("td");
+                    celdaHora.textContent = horas[i];
+                    celdaEmpleado.textContent = empleadosSemana[i];
+                    fila.appendChild(celdaHora);
+                    fila.appendChild(celdaEmpleado);
+                    tabla.appendChild(fila);
+                }
+            }
+
+            mostrarHistorial(semana);
+        }
+
+        function mostrarHistorial(semanaActual) {
+            const historialDiv = document.getElementById("historial");
+            historialDiv.innerHTML = "";
+
+            const semanasAMostrar = 3;
+            for (let s = semanaActual - semanasAMostrar; s < semanaActual; s++) {
+                if (s < 1) continue;
+
+                const fechaInicio = getFechaInicioSemana(s);
+                const fechaFin = new Date(fechaInicio);
+                fechaFin.setDate(fechaInicio.getDate() + 6);
+
+                const empleados = rotarLista(empleadosBase, (s - 1) % empleadosBase.length);
+
+                let html = `<h4>Semana ${s} (${fechaInicio.toLocaleDateString()} – ${fechaFin.toLocaleDateString()})</h4><ul>`;
+                for (let i = 0; i < horas.length; i++) {
+                    html += `<li><strong>${horas[i]}</strong>: ${empleados[i]}</li>`;
+                }
+                html += "</ul>";
+                historialDiv.innerHTML += html;
             }
         }
 
-        function mostrarHorarioManual() {
-            const inputFecha = document.getElementById("fecha").value;
-            if (!inputFecha) {
-                alert("Selecciona una fecha primero.");
-                return;
-            }
-            const fecha = new Date(inputFecha);
-            mostrarHorarioParaFecha(fecha);
+        function getFechaInicioSemana(numeroSemana) {
+            const year = new Date().getFullYear();
+            const date = new Date(year, 0, 1 + (numeroSemana - 1) * 7);
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Ajuste para que inicie en lunes
+            return new Date(date.setDate(diff));
         }
 
-        // Mostrar automáticamente el horario de hoy al cargar la página
-        window.onload = () => {
-            const hoy = new Date();
-            document.getElementById("fecha").valueAsDate = hoy;
-            mostrarHorarioParaFecha(hoy);
-        };
+        window.onload = mostrarHorarioDeHoy;
     </script>
 </body>
 </html>
