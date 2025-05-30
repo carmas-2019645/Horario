@@ -1,3 +1,4 @@
+ 
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -46,38 +47,27 @@
     <img src="hola.png" alt="Logo Licores de Guatemala" class="logo">
     <h1>Horario Diario</h1>
 
-    <!-- Selector de fecha -->
     <p>
         <label for="fecha">Selecciona una fecha:</label>
         <input type="date" id="fecha">
-        <button onclick="mostrarHorario()">Ver horario</button>
+        <button onclick="mostrarHorarioManual()">Ver horario</button>
     </p>
 
     <h2 id="diaSeleccionado"></h2>
 
-    <!-- Tabla de horario -->
     <table>
         <thead>
             <tr>
                 <th>Hora</th>
-                <th>Bloque</th>
+                <th>Empleado</th>
             </tr>
         </thead>
         <tbody id="horario"></tbody>
     </table>
 
     <script>
-        const bloquesBase = {
-            "Lunes": ["Armas", "Catro", "Alex", "Brady"],
-            "Martes": ["Castro", "Alex", "Brady", "Armas"],
-            "Miércoles": ["Alex", "Brady", "Armas", "Castro"],
-            "Jueves": ["Brady", "Armas", "Castro", "Alex"],
-            "Viernes": ["Armas", "Castro", "Alex", "Brady"],
-            "Sábado": ["-", "-", "-", "-"],
-            "Domingo": ["-", "-", "-", "-"]
-        };
-
         const horas = ["7:00–4:00", "8:00–5:00", "9:00–6:00", "10:00–7:00"];
+        const empleadosBase = ["Armas", "Castro", "Alex", "Brady"];
         const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
         function getWeekNumber(date) {
@@ -86,49 +76,55 @@
             return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
         }
 
-        function mostrarHorario() {
+        function rotarLista(lista, pasos) {
+            const rotada = [...lista];
+            for (let i = 0; i < pasos; i++) {
+                const primero = rotada.shift();
+                rotada.push(primero);
+            }
+            return rotada;
+        }
+
+        function mostrarHorarioParaFecha(fecha) {
             const tabla = document.getElementById("horario");
             tabla.innerHTML = "";
 
+            const semana = getWeekNumber(fecha);
+            const diaTexto = dias[fecha.getDay()];
+
+            document.getElementById("diaSeleccionado").textContent =
+                `Horario para ${diaTexto} ${fecha.toLocaleDateString()}`;
+
+            const empleadosSemana = rotarLista(empleadosBase, (semana - 1) % empleadosBase.length);
+
+            for (let i = 0; i < horas.length; i++) {
+                const fila = document.createElement("tr");
+                const celdaHora = document.createElement("td");
+                const celdaEmpleado = document.createElement("td");
+                celdaHora.textContent = horas[i];
+                celdaEmpleado.textContent = empleadosSemana[i];
+                fila.appendChild(celdaHora);
+                fila.appendChild(celdaEmpleado);
+                tabla.appendChild(fila);
+            }
+        }
+
+        function mostrarHorarioManual() {
             const inputFecha = document.getElementById("fecha").value;
             if (!inputFecha) {
                 alert("Selecciona una fecha primero.");
                 return;
             }
-
             const fecha = new Date(inputFecha);
-            const diaSemana = dias[fecha.getDay()];
-            const semana = getWeekNumber(fecha);
-
-            document.getElementById("diaSeleccionado").textContent = `Horario para ${diaSemana} ${fecha.toLocaleDateString()}`;
-
-            const bloquesHoyBase = bloquesBase[diaSemana];
-            let bloquesHoy = [];
-
-            if (bloquesHoyBase) {
-                for (let i = 0; i < bloquesHoyBase.length; i++) {
-                    bloquesHoy[i] = bloquesHoyBase[(i + semana) % bloquesHoyBase.length];
-                }
-
-                for (let i = 0; i < horas.length; i++) {
-                    const fila = document.createElement("tr");
-                    const celdaHora = document.createElement("td");
-                    const celdaBloque = document.createElement("td");
-                    celdaHora.textContent = horas[i];
-                    celdaBloque.textContent = bloquesHoy[i];
-                    fila.appendChild(celdaHora);
-                    fila.appendChild(celdaBloque);
-                    tabla.appendChild(fila);
-                }
-            } else {
-                const fila = document.createElement("tr");
-                const celda = document.createElement("td");
-                celda.colSpan = 2;
-                celda.textContent = "No hay horario disponible.";
-                fila.appendChild(celda);
-                tabla.appendChild(fila);
-            }
+            mostrarHorarioParaFecha(fecha);
         }
+
+        // Mostrar automáticamente el horario de hoy al cargar la página
+        window.onload = () => {
+            const hoy = new Date();
+            document.getElementById("fecha").valueAsDate = hoy;
+            mostrarHorarioParaFecha(hoy);
+        };
     </script>
 </body>
 </html>
