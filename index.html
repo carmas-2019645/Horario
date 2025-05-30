@@ -1,5 +1,4 @@
- <!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,142 +34,60 @@
         th {
             background-color: #e0e0e0;
         }
-        #mensaje-libre {
-            color: #c0392b;
-            font-weight: bold;
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        #historial {
-            margin-top: 40px;
-            text-align: left;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        #historial ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        #historial li {
-            margin-bottom: 5px;
-        }
-        @media (max-width: 600px) {
-            table, th, td {
-                font-size: 14px;
-            }
-        }
     </style>
 </head>
 <body>
     <img src="hola.png" alt="Logo Licores de Guatemala" class="logo">
     <h1>Horario Diario</h1>
-    <h2 id="diaSeleccionado"></h2>
-
-    <div id="mensaje-libre"></div>
-
-    <table id="tabla-horario">
+    <table>
         <thead>
             <tr>
                 <th>Hora</th>
-                <th>Empleado</th>
+                <th>Bloque</th>
             </tr>
         </thead>
-        <tbody id="horario"></tbody>
-    </table>
+        <tbody id="horario">
+        </tbody>
+    </table><script>
+    const bloques = {
+        "Lunes": ["Armas", "Catro", "Alex", "Brady"],
+        "Martes": ["Castro", "Alex", "Brady", "Armas"],
+        "Miércoles": ["Alex", "Brady", "Armas", "Castro"],
+        "Jueves": ["Brady", "Armas", "Castro", "Alex"],
+        "Viernes": ["Armas", "Castro", "Alex", "Brady"],
+        "Sábado": ["-", "-", "-", "-"],
+        "Domingo": ["-", "-", "-", "-"]
+    };
 
-    <h2>Historial de semanas anteriores</h2>
-    <div id="historial"></div>
+    const horas = ["7:00–4:00", "8:00–5:00", "9:00–6:00", "10:00–7:00"];
+    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const hoy = new Date();
+    const nombreDia = dias[hoy.getDay()];
+    const bloquesHoy = bloques[nombreDia];
 
-    <script>
-        const horas = ["7:00–4:00", "8:00–5:00", "9:00–6:00", "10:00–7:00"];
-        const empleadosBase = ["Armas", "Castro", "Alex", "Brady"];
-        const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const tabla = document.getElementById("horario");
 
-        function getWeekNumber(date) {
-            const firstDay = new Date(date.getFullYear(), 0, 1);
-            const pastDays = Math.floor((date - firstDay) / (24 * 60 * 60 * 1000));
-            return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+    if (bloquesHoy) {
+        for (let i = 0; i < horas.length; i++) {
+            const fila = document.createElement("tr");
+            const celdaHora = document.createElement("td");
+            const celdaBloque = document.createElement("td");
+            celdaHora.textContent = horas[i];
+            celdaBloque.textContent = bloquesHoy[i];
+            fila.appendChild(celdaHora);
+            fila.appendChild(celdaBloque);
+            tabla.appendChild(fila);
         }
+    } else {
+        const fila = document.createElement("tr");
+        const celda = document.createElement("td");
+        celda.colSpan = 2;
+        celda.textContent = "No hay horario disponible hoy.";
+        fila.appendChild(celda);
+        tabla.appendChild(fila);
+    }
+</script>
 
-        function rotarLista(lista, pasos) {
-            const rotada = [...lista];
-            for (let i = 0; i < pasos; i++) {
-                const primero = rotada.shift();
-                rotada.push(primero);
-            }
-            return rotada;
-        }
-
-        function mostrarHorarioDeHoy() {
-            const tabla = document.getElementById("horario");
-            const mensajeLibre = document.getElementById("mensaje-libre");
-            const tablaHorario = document.getElementById("tabla-horario");
-            tabla.innerHTML = "";
-            mensajeLibre.innerHTML = "";
-
-            const fecha = new Date();
-            const diaNumero = fecha.getDay();
-            const semana = getWeekNumber(fecha);
-            const diaTexto = dias[diaNumero];
-
-            document.getElementById("diaSeleccionado").textContent =
-                `Horario para ${diaTexto} ${fecha.toLocaleDateString()}`;
-
-            if (diaNumero === 0 || diaNumero === 6) {
-                tablaHorario.style.display = "none";
-                mensajeLibre.innerHTML = "💤 No hay horario asignado para hoy. Día libre.";
-            } else {
-                tablaHorario.style.display = "table";
-                const empleadosSemana = rotarLista(empleadosBase, (semana - 1) % empleadosBase.length);
-
-                for (let i = 0; i < horas.length; i++) {
-                    const fila = document.createElement("tr");
-                    const celdaHora = document.createElement("td");
-                    const celdaEmpleado = document.createElement("td");
-                    celdaHora.textContent = horas[i];
-                    celdaEmpleado.textContent = empleadosSemana[i];
-                    fila.appendChild(celdaHora);
-                    fila.appendChild(celdaEmpleado);
-                    tabla.appendChild(fila);
-                }
-            }
-
-            mostrarHistorial(semana);
-        }
-
-        function mostrarHistorial(semanaActual) {
-            const historialDiv = document.getElementById("historial");
-            historialDiv.innerHTML = "";
-
-            const semanasAMostrar = 3;
-            for (let s = semanaActual - semanasAMostrar; s < semanaActual; s++) {
-                if (s < 1) continue;
-
-                const fechaInicio = getFechaInicioSemana(s);
-                const fechaFin = new Date(fechaInicio);
-                fechaFin.setDate(fechaInicio.getDate() + 6);
-
-                const empleados = rotarLista(empleadosBase, (s - 1) % empleadosBase.length);
-
-                let html = `<h4>Semana ${s} (${fechaInicio.toLocaleDateString()} – ${fechaFin.toLocaleDateString()})</h4><ul>`;
-                for (let i = 0; i < horas.length; i++) {
-                    html += `<li><strong>${horas[i]}</strong>: ${empleados[i]}</li>`;
-                }
-                html += "</ul>";
-                historialDiv.innerHTML += html;
-            }
-        }
-
-        function getFechaInicioSemana(numeroSemana) {
-            const year = new Date().getFullYear();
-            const date = new Date(year, 0, 1 + (numeroSemana - 1) * 7);
-            const day = date.getDay();
-            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Ajuste para que inicie en lunes
-            return new Date(date.setDate(diff));
-        }
-
-        window.onload = mostrarHorarioDeHoy;
-    </script>
 </body>
 </html>
+            
